@@ -1,0 +1,730 @@
+* some trick
+** 通过init.el myinit.org可以完成配置加载, 出错时重启
+** C-c C-c 失败时, rm -rf .emacs/elpa/org* 可解决
+** mypackage 安装重启加载
+* canceled
+#+BEGIN_SRC emacs-lisp
+
+  ;; (use-package org-bullets    ;; org-mode 美化
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+  ;; (setq ido-enable-flex-matching t)  ;; NB匹配, 被swiper/ivy/counsel代替
+  ;; (setq ido-everywhere t)            ;; 打开文件时展示列表
+  ;; (ido-mode 1)
+
+;;;; flashes the cursor's line when you scroll
+;;  (use-package beacon
+;;    :ensure t
+;;    :config
+;;    (beacon-mode 1)
+;;    ;; (setq beacon-color "#666600")
+;;    )
+
+#+END_SRC
+
+#+RESULTS:
+
+* mypackage install
+#+BEGIN_SRC emacs-lisp
+
+(defvar mypackages
+  '(session
+    dashboard
+    projectile
+    counsel-projectile
+    neotree
+    emmet-mode
+    highlight-parentheses
+  ))
+
+(mapc #'(lambda (package)
+    (unless (package-installed-p package)
+      (package-install package)))
+      mypackages)
+
+(defconst private-dir  (expand-file-name "private" user-emacs-directory))
+(defconst temp-dir (format "%s/cache" private-dir)
+  "Hostname-based elisp temp directories")
+
+
+  (use-package try
+    :ensure t)
+
+
+  (defun load-if-exists (f)
+    "load the elisp file only if it exists and is readable"
+    (if (file-readable-p f)
+	(load-file f)))
+
+  (load-if-exists "~/Documents/el/auto-save.el")
+  (load-if-exists "~/Documents/el/tmp-test.el")
+
+#+END_SRC
+
+#+RESULTS:
+| session | dashboard |
+
+* dashboard/neotree
+#+BEGIN_SRC emacs-lisp
+
+;; M-x package-install dashboard
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook))
+
+(setq dashboard-items '((recents  . 5)
+                        ))
+
+(global-set-key (kbd "\e\ed") 'dashboard-refresh-buffer)
+
+
+;; n next line ， p previous line。
+;; SPC or RET or TAB Open current item if it is a file. Fold/Unfold current item if it is a directory.
+;; g Refresh
+;; A Maximize/Minimize the NeoTree Window
+;; H Toggle display hidden files
+;; C-c C-n Create a file or create a directory if filename ends with a ‘/’
+;; C-c C-d Delete a file or a directory.
+;; C-c C-r Rename a file or a directory.
+;; C-c C-c Change the root directory.
+;; C-c C-p Copy a file or a directory.
+(require 'neotree)
+  (global-set-key [f9] 'neotree-toggle)
+  (setq neo-theme 'arrow)
+  (setq counsel-projectile-switch-project 'neotree-projectile-action)
+
+#+END_SRC
+
+#+RESULTS:
+
+* keyboard
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "\e\em")
+		(lambda () (interactive) (find-file "~/.emacs.d/myinit.org")))
+
+  (global-set-key (kbd "\e\et")
+		(lambda () (interactive) (find-file "~/Documents/org/time.org")))
+
+  (global-set-key (kbd "\e\ec")
+		(lambda () (interactive) (find-file "~/Documents/org/collection.org")))
+
+  (global-set-key (kbd "\e\ep")
+		(lambda () (interactive) (find-file "~/Documents/org/projects.org")))
+
+  (global-set-key (kbd "\e\ej")
+		(lambda () (interactive) (find-file "~/Documents/org/job.org")))
+
+  (global-set-key (kbd "\e\ei")
+		(lambda () (interactive) (find-file "~/Documents/org/idea.org")))
+
+  (global-set-key (kbd "\e\el")
+		(lambda () (interactive) (find-file "~/Documents/org/log.org")))
+
+  (global-set-key (kbd "\e\en")
+		(lambda () (interactive) (find-file "~/Documents/org/note.org")))
+
+  (global-set-key (kbd "\e\ek")
+		(lambda () (interactive) (find-file "~/Documents/org/keymap.org")))
+
+  (global-set-key (kbd "\e\eo")
+		(lambda () (interactive) (find-file "~/Documents/org/book.org")))
+
+  (global-set-key (kbd "\e\eb")
+		(lambda () (interactive) (find-file "~/Documents/org/back.org")))
+
+#+END_SRC
+* load/recentf/session
+#+BEGIN_SRC emacs-lisp
+
+  (setq inhibit-startup-message t)
+
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  (global-auto-revert-mode 1)
+
+  (global-set-key (kbd "<f5>") 'revert-buffer)
+
+  (server-mode 1)
+
+  
+  ;; 打开最近文件
+  (require 'recentf)
+  (recentf-mode 1)
+  (setq recentf-max-menu-item 20)
+  (global-set-key (kbd "\e\er") 'recentf-open-files)
+
+  (setq initial-frame-alist (quote ((fullscreen . maximized))))  ;; 默认全屏
+
+;; 启动回到原来的界面
+;;(require 'session)
+;;(add-hook 'after-init-hook 'session-initialize)
+;;(desktop-save-mode t)
+
+#+END_SRC
+* save
+#+BEGIN_SRC emacs-lisp
+;; 自动保存
+;;(add-to-list
+;; 'load-path 
+;; (expand-file-name "3rds" user-emacs-directory)) ;把3rds目录加到加载目录中
+
+(require 'auto-save)            ;; 加载自动保存模块
+(auto-save-enable)              ;; 开启自动保存功能
+(setq auto-save-slient t)       ;; 自动保存的时候静悄悄的
+
+(setq auto-save-default nil)    ;;不生成##文件
+
+(setq
+   backup-by-copying t      ; don't clobber symlinks
+   backup-directory-alist
+    '(("." . "~/.saves"))    ; don't litter my fs tree
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)       ; use versioned backups
+
+#+END_SRC
+* display
+#+BEGIN_SRC emacs-lisp
+  (use-package atom-one-dark-theme
+    :ensure t
+    :config (load-theme 'atom-one-dark t))
+
+  (menu-bar-mode -1)
+  (global-set-key [f10] 'menu-bar-mode)         ;;打开/关闭菜单  
+
+  (tool-bar-mode -1)
+
+  (scroll-bar-mode -1)
+
+  (global-hl-line-mode t)
+
+  (global-linum-mode 1)           ;; 显示行号
+
+  ;;(set-face-attribute 'default nil :height 146)  ;; 字体大小
+  ;;(setq-default line-spacing 2)                  ;; 行高
+
+  ;;;设置标题栏显示文件的完整路径名  
+  ;; (setq frame-title-format  
+  ;;  '("%S" (buffer-file-name "%f"  
+  ;;   (dired-directory dired-directory "%b"))))
+
+
+;; 红色渐变显示括号
+(require 'highlight-parentheses)
+
+(define-globalized-minor-mode global-highlight-parentheses-mode
+  highlight-parentheses-mode
+  (lambda ()
+    (highlight-parentheses-mode t)))
+
+(global-highlight-parentheses-mode t)
+
+
+;; 隐藏打开函数
+(add-hook 'c-mode-common-hook
+  (lambda()
+    (local-set-key (kbd "C-c <right>") 'hs-show-block)
+    (local-set-key (kbd "C-c <left>")  'hs-hide-block)
+    (local-set-key (kbd "C-c <up>")    'hs-hide-all)
+    (local-set-key (kbd "C-c <down>")  'hs-show-all)
+    (hs-minor-mode t)))
+#+END_SRC
+
+#+RESULTS:
+: hs-show-all
+
+* nav search/ace-window/counsel/ivy/swiper/avy/ag
+#+BEGIN_SRC emacs-lisp
+
+  (defalias 'list-buffers 'ibuffer)              ;; 一直在找的buffer管理
+
+  (windmove-default-keybindings)                 ;; S-down window间方向键移动
+
+  (use-package ace-window                        ;; 多窗口C-x o 数字切换
+    :ensure t
+    :init
+    (progn
+      (global-set-key [remap other-window] 'ace-window)
+      (custom-set-faces
+       '(aw-leading-char-face
+         ((t (:inherit ace-jump-face-foreground :height 3.0))))) 
+      ))
+
+
+  ;; it looks like counsel is a requirement for swiper
+  (use-package counsel
+    :ensure t
+    :bind
+    (("M-y" . counsel-yank-pop)
+     :map ivy-minibuffer-map
+     ("M-y" . ivy-next-line)))  ;;yank 的NB扩展
+
+  ;; 浏览器C-c, emacs C-w后,將浏览器剪贴板放入M-y
+  (setq save-interprogram-paste-before-kill t)
+
+  (use-package ivy
+    :ensure t
+    :diminish (ivy-mode)
+    :bind (("C-x b" . ivy-switch-buffer))
+    :config
+    (ivy-mode 1)
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-display-style 'fancy))
+
+
+  (use-package swiper
+    :ensure try
+    :bind (("C-s" . swiper)
+           ("C-r" . swiper)
+           ("C-c C-r" . ivy-resume)
+           ("M-x" . counsel-M-x)
+           ("C-x C-f" . counsel-find-file))
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-display-style 'fancy)
+      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
+      ))
+
+  (use-package avy
+    :ensure t
+    :bind ("M-s" . avy-goto-char))
+
+  ;; search in files: ag-files
+  ;; install tricks: sudo apt install 
+  (use-package ag
+     :ensure t)
+
+#+END_SRC
+
+* proxjectile
+** man counsel-projectile
+;; C-c p f counsel-projectile-find-file
+;; C-c p d counsel-projectile-find-dir 
+;; C-c p b counsel-projectile-switch-to-buffer
+;; C-c p s s counsel-projectile-ag
+;; C-c p p counsel-projectile-switch-project  
+** man dir-mode
++ 新建目录
+** code
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+  :config
+  (setq projectile-known-projects-file
+        (expand-file-name "projectile-bookmarks.eld" temp-dir))
+  (setq projectile-completion-system 'ivy)
+  (projectile-global-mode))
+
+(use-package counsel-projectile
+  :config
+  (counsel-projectile-on))
+
+(use-package org-projectile
+  :bind (("C-c n p" . org-projectile:project-todo-completing-read)
+         ("C-c c" . org-capture))
+  :config
+  (progn
+    (setq org-projectile:projects-file 
+          "~/Documents/org/projects.org")
+    (setq org-agenda-files (append org-agenda-files (org-projectile:todo-files)))
+    (add-to-list 'org-capture-templates (org-projectile:project-todo-entry "p")))
+  :ensure t)
+
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read))
+
+(use-package magit-popup)
+
+#+END_SRC
+
+#+RESULTS:
+
+* edit/auto-complete/undo-tree/expand-region/dired-x
+#+BEGIN_SRC emacs-lisp
+;;  (use-package which-key
+;;    :ensure t 
+;;    :config
+;;    (which-key-mode))
+
+  (use-package auto-complete        ;; 已输过单词自动完成
+    :ensure t
+    :init
+    (progn
+      (ac-config-default)
+      (global-auto-complete-mode t)
+      ))
+
+  ;; visualize tree: C-x u
+  ;; undo: C-/ redo: C-?
+  (use-package undo-tree
+    :ensure t
+    :init
+    (global-undo-tree-mode))
+
+;;  (use-package hungry-delete
+;;    :ensure t
+;;    :config
+;;    (global-hungry-delete-mode))
+
+  (use-package expand-region
+    :ensure t
+    :config 
+    (global-set-key (kbd "C-=") 'er/expand-region))
+
+  (delete-selection-mode 1)          ;; 选中后输入会替换掉你选中部分
+  
+  (require 'dired-x)                 ;; C-x C-j 进入当前文件夹
+
+  (setq x-select-enable-clipboard t) ;;支持emacs和外部程序的粘贴
+
+  (setq default-tab-width 4)
+
+#+END_SRC
+
+* custome edit
+#+BEGIN_SRC emacs-lisp
+;; 新建一行
+(defun zl-newline nil  
+  "open new line belowe current line"  
+  (interactive)  
+  (end-of-line)  
+  (newline))
+
+(global-set-key (kbd "C-o") 'zl-newline)
+
+ 
+;; 复制选区或复制一行
+
+(global-set-key "\C-j"
+(lambda ()
+  (interactive)
+  (if mark-active
+      (kill-ring-save (region-beginning)
+      (region-end))
+    (progn
+     (kill-ring-save (line-beginning-position)
+     (line-end-position))
+     (message "copied line")))))
+
+
+  ;; 复制新的一行
+(defun my-new-line nil  
+  "my function copied and pasted line"  
+  (interactive)  
+  (kill-ring-save (line-beginning-position)
+  (line-end-position))
+  (end-of-line)  
+  (newline)
+  (yank)
+  (message "copied and pasted line"))
+
+(global-set-key (kbd "C-M-j") 'my-new-line)
+
+
+  ;; 删除行内光标前文字
+(defun my-delete-line-left nil  
+  "my  delete line left"  
+  (interactive)  
+  (push-mark)
+  (back-to-indentation)
+  (kill-region (point) (mark))
+  (message "deleted line left"))
+
+(global-set-key (kbd "C-k") 'my-delete-line-left)
+
+;; 删除行内光标后文字
+(defun my-delete-line-right nil  
+  "my  delete line right"  
+  (interactive)  
+  (kill-line)
+  (message "deleted line right"))
+
+(global-set-key (kbd "M-k") 'my-delete-line-right)
+
+
+;; 剪贴选区或剪贴一行
+;; 剪贴一行
+;;     (kill-region (line-beginning-position)
+;;     (line-end-position))
+
+(global-set-key "\C-\M-k"
+(lambda ()
+  (interactive)
+  (if mark-active
+      (kill-region (region-beginning)
+      (region-end))
+  (progn
+     (kill-whole-line 1)
+     (message "killed line")))))
+
+
+;; sfsfdsa
+;; 上移一行
+(defun my-up-line nil  
+  "my up line"  
+  (interactive)  
+  (kill-whole-line 1)
+  (beginning-of-line 0)
+  (yank)
+  (beginning-of-line 0)
+  (end-of-line)
+  (message "up line"))
+
+(global-set-key (kbd "C-<up>") 'my-up-line)
+
+
+;; 下移一行
+;; sfsfdsa
+(defun my-down-line nil  
+  "my down line"  
+  (interactive)  
+  (kill-whole-line 1)
+  (beginning-of-line 2)
+  (yank)
+  (beginning-of-line 0)
+  (end-of-line)
+  (message "down line"))
+
+(global-set-key (kbd "C-<down>") 'my-down-line)
+
+
+
+;; % 括号间跳转
+(defun ar-match-paren (&optional arg)
+  "Go to the matching brace, bracket or parenthesis if on its counterpart."
+  (interactive "P")
+  (if arg
+      (self-insert-command (if (numberp arg) arg 1))
+    (cond ((eq 4 (car (syntax-after (point))))
+       (forward-sexp)
+       (forward-char -1))
+      ((eq 5 (car (syntax-after (point))))
+       (forward-char 1)
+       (backward-sexp))
+      (t (self-insert-command 1)))))
+
+(global-set-key [(%)] 'ar-match-paren)
+
+
+#+END_SRC
+
+#+RESULTS:
+: ar-match-paren
+
+* reveal.js
+#+BEGIN_SRC emacs-lisp
+
+  (use-package ox-reveal
+    :ensure ox-reveal)
+
+  (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
+  (setq org-reveal-mathjax t)
+
+  (use-package htmlize
+    :ensure t)
+
+#+END_SRC
+* flycheck
+#+BEGIN_SRC emacs-lisp
+;;  (use-package flycheck
+;;    :ensure t
+;;    :init
+;;    (global-flycheck-mode t))
+
+#+END_SRC
+* yasnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :init
+    (yas-global-mode 1))
+
+#+END_SRC
+* org-capture
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c c")
+		  'org-capture)
+  (setq org-capture-templates
+	'(("a" "Appointment" entry (file  "~/Documents/org/gcal.org" "Appointments")
+	   "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
+	  ("n" "Note" entry (file+headline "~/Documents/org/notes.org" "Notes")
+	   "* Note %?\n%T")
+	  ("l" "Link" entry (file+headline "~/Documents/org/links.org" "Links")
+	   "* %? %^L %^g \n%T" :prepend t)
+	  ("b" "Blog idea" entry (file+headline "~/Documents/org/i.org" "Blog Topics:")
+	   "* %?\n%T" :prepend t)
+	  ("t" "To Do Item" entry (file+headline "~/Documents/org/i.org" "To Do Items")
+	   "* %?\n%T" :prepend t)
+	  ("j" "Journal" entry (file+datetree "~/Documents/org/journals.org")
+	   "* %?\nEntered on %U\n  %i\n  %a")
+	  ("c" "clipboard" entry (file "~/Documents/org/clipboard.org")
+	   "* %?\n%i\n")))
+
+  (setq org-todo-keyword-faces '(
+				 ("TODO" . (:foreground "steelBlue" :weight normal)) 
+				 ("DONE" . (:foreground "darkSlateGray" :weight normal)) ))
+
+  (defadvice org-capture-finalize 
+      (after delete-capture-frame activate)  
+    "Advise capture-finalize to close the frame"  
+    (if (equal "capture" (frame-parameter nil 'name))  
+	(delete-frame)))
+
+  (defadvice org-capture-destroy 
+      (after delete-capture-frame activate)  
+    "Advise capture-destroy to close the frame"  
+    (if (equal "capture" (frame-parameter nil 'name))  
+	(delete-frame)))  
+
+  (use-package noflet
+    :ensure t )
+  (defun make-capture-frame ()
+    "Create a new frame and run org-capture."
+    (interactive)
+    (make-frame '((name . "capture")))
+    (select-frame-by-name "capture")
+    (delete-other-windows)
+    (noflet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+      (org-capture)))
+
+#+END_SRC
+* ibuffer bbbb nnnn
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+ (setq ibuffer-saved-filter-groups
+       (quote (("default"
+                ("dired" (mode . dired-mode))
+                ("org" (mode . org-mode))
+                ("emacs" (or
+                          (name . "^\\*scratch\\*$")
+                          (name . "^\\*Messages\\*$")
+                          (name . "^\\*Backtrace\\*$")
+                          (name . "^\\*dashboard\\*$")))
+                ))))
+ (add-hook 'ibuffer-mode-hook
+           (lambda ()
+             (ibuffer-switch-to-saved-filter-groups "default")))
+
+#+END_SRC
+
+#+RESULTS:
+| lambda | nil | (ibuffer-switch-to-saved-filter-groups default) |
+
+* python
+#+BEGIN_SRC emacs-lisp
+  ;;;; http://tkf.github.io/emacs-jedi/latest/#configuration
+  ;;;; m-x package-install RET jedi RET
+  ;;;; M-x jedi:install-server RET
+  ;;;; 上一步安装时,不确定是否安装成功
+;;  (use-package jedi    ;; Python auto-completion
+;;    :ensure t
+;;    :init
+;;    (add-hook 'python-mode-hook 'jedi:setup)
+;;    (add-hook 'python-mode-hook 'jedi:ac-setup))
+
+;;  (use-package elpy
+;;    :ensure t
+;;    :config 
+;;    (elpy-enable))
+;;;; 经测试,菜单加VirturalEnvs在其他如c环境也有,不需要
+
+#+END_SRC
+* web-mode/emmet-mode
+#+BEGIN_SRC emacs-lisp
+
+  ;; wrap tag: C-c C-e w
+  ;; commit M-;
+  ;; C-c C-n：放在HTML标签上，在标签间跳转。
+  ;; C-c C-f：放在HTML标签上，在标签折叠。
+  (use-package web-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+    (setq web-mode-engines-alist
+	  '(("django"    . "\\.html\\'")))
+    (setq web-mode-markup-indent-offset 2)
+    (setq web-mode-ac-sources-alist
+	  '(("css" . (ac-source-css-property))
+	    ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+  
+    (setq web-mode-enable-auto-closing t)
+    (setq web-mode-enable-auto-quoting t))
+
+
+  ;; a：a+href
+  ;; #q：div+id(q)
+  ;; .x：div+class(x)
+  ;; #q.x：div+id(q)+class(x)
+  (require 'emmet-mode)
+    (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+    (add-hook 'html-mode-hook 'emmet-mode)
+    (add-hook 'web-mode-hook 'emmet-mode)
+    (add-hook 'css-mode-hook  'emmet-mode)
+
+#+END_SRC
+
+* php-mode
+
+  sudo apt-get install php-elisp
+#+BEGIN_SRC emacs-lisp
+
+
+
+#+END_SRC
+
+#+RESULTS:
+
+* org-mode
+#+BEGIN_SRC emacs-lisp
+  ;; 移除旧的C-k org-kill-line 绑定
+(define-key org-mode-map (kbd "C-k") nil)
+(define-key org-mode-map (kbd "M-k") nil)
+
+(define-key org-mode-map (kbd "C-M-j") nil)
+(define-key org-mode-map (kbd "C-j") nil)
+
+#+END_SRC
+* stardict
+#+BEGIN_SRC emacs-lisp
+;; author: pluskid
+;; 调用 stardict 的命令行接口来查辞典
+;; 如果选中了 region 就查询 region 的内容，
+;; 否则就查询当前光标所在的词
+(global-set-key [mouse-3] 'kid-star-dict);;鼠标右键
+(defun kid-star-dict ()
+  (interactive)
+  (let ((begin (point-min))
+        (end (point-max)))
+    (if mark-active
+        (setq begin (region-beginning)
+              end (region-end))
+      (save-excursion
+        (backward-word)
+        (mark-word)
+        (setq begin (region-beginning)
+              end (region-end))))
+    ;; 有时候 stardict 会很慢，所以在回显区显示一点东西
+    ;; 以免觉得 Emacs 在干什么其他奇怪的事情。
+    (message "searching for %s ..." (buffer-substring begin end))
+    (tooltip-show 
+     (shell-command-to-string 
+      (concat "sdcv -n " 
+              (buffer-substring begin end))))))
+
+#+END_SRC
+
+#+RESULTS:
+: kid-star-dict
+
