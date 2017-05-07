@@ -222,15 +222,6 @@
 
 (global-highlight-parentheses-mode t)
 
-
-;; 隐藏打开函数
-(add-hook 'c-mode-common-hook
-  (lambda()
-    (local-set-key (kbd "C-c <right>") 'hs-show-block)
-    (local-set-key (kbd "C-c <left>")  'hs-hide-block)
-    (local-set-key (kbd "C-c <up>")    'hs-hide-all)
-    (local-set-key (kbd "C-c <down>")  'hs-show-all)
-    (hs-minor-mode t)))
 #+END_SRC
 
 #+RESULTS:
@@ -433,6 +424,10 @@
 (global-set-key (kbd "C-M-j") 'my-new-line)
 
 
+;; 取消默认全局绑定
+(global-unset-key "\C-i")
+
+
   ;; 删除行内光标前文字
 (defun my-delete-line-left nil  
   "my  delete line left"  
@@ -442,7 +437,7 @@
   (kill-region (point) (mark))
   (message "deleted line left"))
 
-(global-set-key (kbd "C-k") 'my-delete-line-left)
+(global-set-key (kbd "C-i k h") 'my-delete-line-left)
 
 ;; 删除行内光标后文字
 (defun my-delete-line-right nil  
@@ -451,7 +446,7 @@
   (kill-line)
   (message "deleted line right"))
 
-(global-set-key (kbd "M-k") 'my-delete-line-right)
+(global-set-key (kbd "C-i k l") 'my-delete-line-right)
 
 
 ;; 剪贴选区或剪贴一行
@@ -459,7 +454,7 @@
 ;;     (kill-region (line-beginning-position)
 ;;     (line-end-position))
 
-(global-set-key "\C-\M-k"
+(global-set-key "\C-k"
 (lambda ()
   (interactive)
   (if mark-active
@@ -516,6 +511,16 @@
       (t (self-insert-command 1)))))
 
 (global-set-key [(%)] 'ar-match-paren)
+
+
+;; 隐藏打开函数
+(add-hook 'c-mode-common-hook
+  (lambda()
+    (local-set-key (kbd "C-c <right>") 'hs-show-block)
+    (local-set-key (kbd "C-c <left>")  'hs-hide-block)
+    (local-set-key (kbd "C-c <up>")    'hs-hide-all)
+    (local-set-key (kbd "C-c <down>")  'hs-show-all)
+    (hs-minor-mode t)))
 
 
 #+END_SRC
@@ -694,6 +699,8 @@
 
 (define-key org-mode-map (kbd "C-M-j") nil)
 (define-key org-mode-map (kbd "C-j") nil)
+(define-key org-mode-map (kbd "C-i") nil)
+
 
 #+END_SRC
 * stardict
