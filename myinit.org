@@ -66,40 +66,7 @@
 #+RESULTS:
 | session | dashboard |
 
-* dashboard/neotree
-#+BEGIN_SRC emacs-lisp
-
-;; M-x package-install dashboard
-(use-package dashboard
-  :config
-  (dashboard-setup-startup-hook))
-
-(setq dashboard-items '((recents  . 5)
-                        ))
-
-(global-set-key (kbd "\e\ed") 'dashboard-refresh-buffer)
-
-
-;; n next line ， p previous line。
-;; SPC or RET or TAB Open current item if it is a file. Fold/Unfold current item if it is a directory.
-;; g Refresh
-;; A Maximize/Minimize the NeoTree Window
-;; H Toggle display hidden files
-;; C-c C-n Create a file or create a directory if filename ends with a ‘/’
-;; C-c C-d Delete a file or a directory.
-;; C-c C-r Rename a file or a directory.
-;; C-c C-c Change the root directory.
-;; C-c C-p Copy a file or a directory.
-(require 'neotree)
-  (global-set-key [f9] 'neotree-toggle)
-  (setq neo-theme 'arrow)
-  (setq counsel-projectile-switch-project 'neotree-projectile-action)
-
-#+END_SRC
-
-#+RESULTS:
-
-* keyboard
+* defind open file keys
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "\e\em")
 		(lambda () (interactive) (find-file "~/.emacs.d/myinit.org")))
@@ -135,6 +102,73 @@
 		(lambda () (interactive) (find-file "~/Documents/org/back.org")))
 
 #+END_SRC
+
+* rebinding keys
+#+BEGIN_SRC emacs-lisp
+
+
+;; 移除旧的org-mode 绑定
+(define-key org-mode-map (kbd "C-k") nil)
+(define-key org-mode-map (kbd "C-M-j") nil)
+
+(define-key org-mode-map (kbd "C-j") nil)
+
+;; c-mode
+(define-key c-mode-map (kbd "M-j") nil)
+
+;; 重新定义
+
+;; 下一个单词
+(defun my-next-word nil  
+  "my next word"  
+  (interactive)  
+  (forward-word)  
+  (forward-word)
+  (backward-word)
+  )
+(global-set-key (kbd "M-w") 'my-next-word)
+
+
+(global-set-key (kbd "C-w") 'forward-char)
+
+(global-set-key (kbd "M-p") 'backward-paragraph)
+
+(global-set-key (kbd "M-n") 'forward-paragraph)
+
+
+#+END_SRC
+* dashboard/neotree
+#+BEGIN_SRC emacs-lisp
+
+;; M-x package-install dashboard
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook))
+
+(setq dashboard-items '((recents  . 5)
+                        ))
+
+(global-set-key (kbd "\e\ed") 'dashboard-refresh-buffer)
+
+
+;; n next line ， p previous line。
+;; SPC or RET or TAB Open current item if it is a file. Fold/Unfold current item if it is a directory.
+;; g Refresh
+;; A Maximize/Minimize the NeoTree Window
+;; H Toggle display hidden files
+;; C-c C-n Create a file or create a directory if filename ends with a ‘/’
+;; C-c C-d Delete a file or a directory.
+;; C-c C-r Rename a file or a directory.
+;; C-c C-c Change the root directory.
+;; C-c C-p Copy a file or a directory.
+(require 'neotree)
+  (global-set-key [f9] 'neotree-toggle)
+  (setq neo-theme 'arrow)
+  (setq counsel-projectile-switch-project 'neotree-projectile-action)
+
+#+END_SRC
+
+#+RESULTS:
 * load/recentf/session
 #+BEGIN_SRC emacs-lisp
 
@@ -227,7 +261,7 @@
 #+RESULTS:
 : hs-show-all
 
-* nav search/ace-window/counsel/ivy/swiper/avy/ag
+* ace-window/counsel/ivy/swiper/avy/ag
 #+BEGIN_SRC emacs-lisp
 
   (defalias 'list-buffers 'ibuffer)              ;; 一直在找的buffer管理
@@ -266,11 +300,10 @@
     (setq ivy-display-style 'fancy))
 
 
+
   (use-package swiper
     :ensure try
     :bind (("C-s" . swiper)
-           ("C-r" . swiper)
-           ("C-c C-r" . ivy-resume)
            ("M-x" . counsel-M-x)
            ("C-x C-f" . counsel-find-file))
     :config
@@ -278,8 +311,9 @@
       (ivy-mode 1)
       (setq ivy-use-virtual-buffers t)
       (setq ivy-display-style 'fancy)
-      (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
       ))
+
+
 
   (use-package avy
     :ensure t
@@ -342,7 +376,7 @@
 
 #+RESULTS:
 
-* edit/auto-complete/undo-tree/expand-region/dired-x
+* auto-complete/undo-tree/expand-region/dired-x
 #+BEGIN_SRC emacs-lisp
 ;;  (use-package which-key
 ;;    :ensure t 
@@ -372,7 +406,7 @@
   (use-package expand-region
     :ensure t
     :config 
-    (global-set-key (kbd "C-=") 'er/expand-region))
+    (global-set-key (kbd "C-o") 'er/expand-region))
 
   (delete-selection-mode 1)          ;; 选中后输入会替换掉你选中部分
   
@@ -393,7 +427,7 @@
   (end-of-line)  
   (newline))
 
-(global-set-key (kbd "C-o") 'zl-newline)
+(global-set-key (kbd "M-o") 'zl-newline)
 
  
 ;; 复制选区或复制一行
@@ -423,30 +457,43 @@
 
 (global-set-key (kbd "C-M-j") 'my-new-line)
 
+;; 复制单词
+(defun my-copy-word nil  
+  "my copy word"
+  (interactive)  
+  (forward-word)  
+  (backward-word)
+  (push-mark)
+  (forward-word)  
+  (kill-ring-save (region-beginning)(region-end))
+)
 
-;; 取消默认全局绑定
-(global-unset-key "\C-i")
+(global-set-key (kbd "M-j") 'my-copy-word)
 
 
   ;; 删除行内光标前文字
 (defun my-delete-line-left nil  
-  "my  delete line left"  
+  "my delete line left"  
   (interactive)  
   (push-mark)
   (back-to-indentation)
   (kill-region (point) (mark))
   (message "deleted line left"))
 
-(global-set-key (kbd "C-i k h") 'my-delete-line-left)
+(global-set-key (kbd "M-<backspace>") 'my-delete-line-left)
 
 ;; 删除行内光标后文字
 (defun my-delete-line-right nil  
-  "my  delete line right"  
+  "my delete line right"  
   (interactive)  
   (kill-line)
   (message "deleted line right"))
 
-(global-set-key (kbd "C-i k l") 'my-delete-line-right)
+(global-set-key (kbd "M-<delete>") 'my-delete-line-right)
+
+
+;; 删后一个单词
+;;(global-set-key (kbd "C-<delete>") 'kill-word)
 
 
 ;; 剪贴选区或剪贴一行
@@ -605,7 +652,7 @@
       (org-capture)))
 
 #+END_SRC
-* ibuffer bbbb nnnn
+* ibuffer
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-x C-b") 'ibuffer)
  (setq ibuffer-saved-filter-groups
@@ -693,14 +740,6 @@
 
 * org-mode
 #+BEGIN_SRC emacs-lisp
-  ;; 移除旧的C-k org-kill-line 绑定
-(define-key org-mode-map (kbd "C-k") nil)
-(define-key org-mode-map (kbd "M-k") nil)
-
-(define-key org-mode-map (kbd "C-M-j") nil)
-(define-key org-mode-map (kbd "C-j") nil)
-(define-key org-mode-map (kbd "C-i") nil)
-
 
 #+END_SRC
 * stardict
@@ -735,3 +774,32 @@
 #+RESULTS:
 : kid-star-dict
 
+* open-terminal
+#+BEGIN_SRC emacs-lisp
+
+(defun my-open-terminal ()
+  "my-open-terminal"
+  (interactive)
+  (shell-command "gnome-terminal"))
+
+(global-set-key (kbd "M-z") 'my-open-terminal)
+
+#+END_SRC
+* evil
+#+BEGIN_SRC emacs-lisp
+
+(add-to-list 'load-path "~/Documents/el/evil")
+(require 'evil)
+(evil-mode -1)
+
+;;(setq evil-toggle-key "")	; remove default evil-toggle-key C-z, manually setup later
+(setq evil-want-C-i-jump nil)	; don't bind [tab] to evil-jump-forward
+
+;; remove all keybindings from insert-state keymap, use emacs-state when editing
+(setcdr evil-insert-state-map nil)
+    
+;; ESC to switch back normal-state
+(define-key evil-insert-state-map [escape] 'evil-normal-state)
+ 
+
+#+END_SRC
