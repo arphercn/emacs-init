@@ -106,17 +106,34 @@
 * rebinding keys
 #+BEGIN_SRC emacs-lisp
 
-
 ;; 移除旧的org-mode 绑定
 (define-key org-mode-map (kbd "C-k") nil)
 (define-key org-mode-map (kbd "C-M-j") nil)
-
 (define-key org-mode-map (kbd "C-j") nil)
+(define-key org-mode-map (kbd "C-<tab>") nil)
+(define-key org-mode-map (kbd "C-v") nil)
+(define-key org-mode-map (kbd "M-v") nil)
+(define-key org-mode-map (kbd "S-<return>") nil)
 
 ;; c-mode
-(define-key c-mode-map (kbd "M-j") nil)
+;;(define-key c-mode-map (kbd "M-j") nil)
 
 ;; 重新定义
+
+(global-set-key (kbd "C-w") 'forward-char)
+(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "C-<tab>") 'previous-buffer)
+(global-set-key (kbd "C-v") 'yank)
+(global-set-key (kbd "C-z") 'undo-tree-undo)
+
+;; 新建一行
+(defun my-newline nil  
+  "open new line belowe current line"  
+  (interactive)  
+  (end-of-line)  
+  (newline))
+(global-set-key (kbd "S-<return>") 'my-newline)
 
 ;; 下一个单词
 (defun my-next-word nil  
@@ -128,12 +145,17 @@
   )
 (global-set-key (kbd "M-w") 'my-next-word)
 
-
-(global-set-key (kbd "C-w") 'forward-char)
-
-(global-set-key (kbd "M-p") 'backward-paragraph)
-
-(global-set-key (kbd "M-n") 'forward-paragraph)
+;; 复制单词
+(defun my-copy-word nil  
+  "my copy word"
+  (interactive)  
+  (forward-word)  
+  (backward-word)
+  (push-mark)
+  (forward-word)  
+  (kill-ring-save (region-beginning)(region-end))
+)
+(global-set-key (kbd "C-M-w") 'my-copy-word)
 
 
 #+END_SRC
@@ -420,19 +442,9 @@
 
 * custome edit
 #+BEGIN_SRC emacs-lisp
-;; 新建一行
-(defun zl-newline nil  
-  "open new line belowe current line"  
-  (interactive)  
-  (end-of-line)  
-  (newline))
 
-(global-set-key (kbd "M-o") 'zl-newline)
-
- 
 ;; 复制选区或复制一行
-
-(global-set-key "\C-j"
+(global-set-key "\M-k"
 (lambda ()
   (interactive)
   (if mark-active
@@ -443,8 +455,7 @@
      (line-end-position))
      (message "copied line")))))
 
-
-  ;; 复制新的一行
+;; 复制新的一行
 (defun my-new-line nil  
   "my function copied and pasted line"  
   (interactive)  
@@ -454,22 +465,7 @@
   (newline)
   (yank)
   (message "copied and pasted line"))
-
-(global-set-key (kbd "C-M-j") 'my-new-line)
-
-;; 复制单词
-(defun my-copy-word nil  
-  "my copy word"
-  (interactive)  
-  (forward-word)  
-  (backward-word)
-  (push-mark)
-  (forward-word)  
-  (kill-ring-save (region-beginning)(region-end))
-)
-
-(global-set-key (kbd "M-j") 'my-copy-word)
-
+(global-set-key (kbd "C-M-k") 'my-new-line)
 
   ;; 删除行内光标前文字
 (defun my-delete-line-left nil  
@@ -479,7 +475,6 @@
   (back-to-indentation)
   (kill-region (point) (mark))
   (message "deleted line left"))
-
 (global-set-key (kbd "M-<backspace>") 'my-delete-line-left)
 
 ;; 删除行内光标后文字
@@ -488,19 +483,9 @@
   (interactive)  
   (kill-line)
   (message "deleted line right"))
-
 (global-set-key (kbd "M-<delete>") 'my-delete-line-right)
 
-
-;; 删后一个单词
-;;(global-set-key (kbd "C-<delete>") 'kill-word)
-
-
 ;; 剪贴选区或剪贴一行
-;; 剪贴一行
-;;     (kill-region (line-beginning-position)
-;;     (line-end-position))
-
 (global-set-key "\C-k"
 (lambda ()
   (interactive)
@@ -511,8 +496,6 @@
      (kill-whole-line 1)
      (message "killed line")))))
 
-
-;; sfsfdsa
 ;; 上移一行
 (defun my-up-line nil  
   "my up line"  
@@ -523,12 +506,9 @@
   (beginning-of-line 0)
   (end-of-line)
   (message "up line"))
-
 (global-set-key (kbd "C-<up>") 'my-up-line)
 
-
 ;; 下移一行
-;; sfsfdsa
 (defun my-down-line nil  
   "my down line"  
   (interactive)  
@@ -538,10 +518,7 @@
   (beginning-of-line 0)
   (end-of-line)
   (message "down line"))
-
 (global-set-key (kbd "C-<down>") 'my-down-line)
-
-
 
 ;; % 括号间跳转
 (defun ar-match-paren (&optional arg)
@@ -556,9 +533,7 @@
        (forward-char 1)
        (backward-sexp))
       (t (self-insert-command 1)))))
-
 (global-set-key [(%)] 'ar-match-paren)
-
 
 ;; 隐藏打开函数
 (add-hook 'c-mode-common-hook
@@ -573,7 +548,7 @@
 #+END_SRC
 
 #+RESULTS:
-: ar-match-paren
+| (lambda nil (local-set-key (kbd C-c <right>) (quote hs-show-block)) (local-set-key (kbd C-c <left>) (quote hs-hide-block)) (local-set-key (kbd C-c <up>) (quote hs-hide-all)) (local-set-key (kbd C-c <down>) (quote hs-show-all)) (hs-minor-mode t)) | ac-cc-mode-setup |
 
 * reveal.js
 #+BEGIN_SRC emacs-lisp
@@ -732,7 +707,11 @@
   sudo apt-get install php-elisp
 #+BEGIN_SRC emacs-lisp
 
-
+(add-to-list 'load-path "~/Documents/el/php-mode")
+(require 'php-mode)
+(autoload 'php-mode "php-mode" "Major mode for editing PHP code." t)
+(add-to-list 'auto-mode-alist '("\\.php$" . php-mode))
+(add-to-list 'auto-mode-alist '("\\.inc$" . php-mode))
 
 #+END_SRC
 
